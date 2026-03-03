@@ -33,8 +33,10 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.5rem;
+        text-align: center;
+        white-space: nowrap;
     }
-    .sub-header { font-size: 1rem; color: #888; margin-bottom: 1.5rem; }
+    .sub-header { font-size: 1rem; color: #888; margin-bottom: 1.5rem; text-align: center; }
 </style>
 """, unsafe_allow_html=True)
 
