@@ -197,24 +197,66 @@ if filtered.empty:
 st.markdown('<div class="main-header">Superstore Sales Dashboard</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Interactive analytics for sales, profit & product performance</div>', unsafe_allow_html=True)
 
-# if generic_mode, provide simple summaries and stop
+# if generic_mode, provide a friendly, visual explorer and stop
 if generic_mode:
-    st.markdown("## Generic dataset summary")
-    st.write("**Columns:**", df.columns.tolist())
-    st.write(df.describe(include='all'))
-    st.dataframe(filtered)
-    # show a histogram for every column, converting to numeric when possible
-    charts_shown = 0
-    for col in filtered.columns:
-        try:
-            fig = px.histogram(filtered, x=col, title=f"Distribution of {col}")
+    st.markdown("## Generic dataset explorer")
+
+    # Basic KPIs
+    n_rows, n_cols = filtered.shape
+    num_cols = filtered.select_dtypes(include=['number']).columns.tolist()
+    cat_cols = filtered.select_dtypes(exclude=['number']).columns.tolist()
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Rows", f"{n_rows:,}")
+    k2.metric("Columns", f"{n_cols}")
+    k3.metric("Numeric cols", f"{len(num_cols)}")
+    k4.metric("Categorical cols", f"{len(cat_cols)}")
+
+    st.markdown("---")
+
+    # Show a small sample for quick inspection
+    st.subheader("Sample rows")
+    st.dataframe(filtered.head(8))
+
+    st.markdown("---")
+
+    # Color palette for charts
+    palette = ['#667eea', '#764ba2', '#f093fb', '#a8edea', '#ffb86b']
+
+    # Show histograms for up to 3 numeric columns (most informative)
+    if num_cols:
+        st.subheader("Numeric distributions")
+        # pick up to 3 numeric cols with most non-null values
+        sorted_num = sorted(num_cols, key=lambda c: filtered[c].count(), reverse=True)[:3]
+        for col in sorted_num:
+            fig = px.histogram(filtered, x=col, nbins=30, title=f"Distribution of {col}", color_discrete_sequence=[palette[0]])
+            fig.update_layout(template='plotly_white')
             st.plotly_chart(fig, use_container_width=True)
-            charts_shown += 1
-        except Exception:
-            # skip columns that Plotly can't handle (rare)
-            continue
-    if charts_shown == 0:
-        st.info("No charts could be generated for this dataset. It may contain only non-numeric or unsupported types.")
+    else:
+        st.info("No numeric columns found to show distributions.")
+
+    # Show bar/pie charts for up to 3 categorical columns
+    if cat_cols:
+        st.subheader("Top categories (by frequency)")
+        # choose categorical columns that have reasonable cardinality (not too many distinct)
+        cand = [c for c in cat_cols if filtered[c].nunique() <= 20]
+        cand = cand[:3]
+        for col in cand:
+            df_top = filtered[col].fillna("(missing)").value_counts().reset_index()
+            df_top.columns = [col, 'count']
+            # bar chart
+            fig_bar = px.bar(df_top.head(10), x='count', y=col, orientation='h', title=f'Top values in {col}', color_discrete_sequence=palette)
+            fig_bar.update_layout(template='plotly_white', yaxis={'autorange': 'reversed'})
+            st.plotly_chart(fig_bar, use_container_width=True)
+            # pie chart of top 6
+            fig_pie = px.pie(df_top.head(6), values='count', names=col, title=f'{col} composition (top 6)', color_discrete_sequence=palette)
+            fig_pie.update_layout(template='plotly_white')
+            st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("No categorical columns found to show category breakdowns.")
+
+    st.markdown('---')
+    st.caption('Tip: Upload a dataset with numeric columns for histograms and categorical columns with limited unique values for bars and pies.')
     st.stop()
 
 # allow user to download the current filtered data
