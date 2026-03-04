@@ -74,12 +74,14 @@ if df.empty:
     st.error("No data available. Please upload a valid CSV or check the sample file.")
     st.stop()
 
-# Ensure essential columns exist before proceeding. We need at least sales and identifiers.
+# Ensure essential columns exist before proceeding. We prefer Sales/Profit/Order ID
 required = ['Sales', 'Profit', 'Order ID']
 missing = [c for c in required if c not in df.columns]
+generic_mode = False
 if missing:
-    st.error(f"Dataset is missing required columns: {', '.join(missing)}. Cannot display dashboard.")
-    st.stop()
+    # instead of stopping, we'll switch into a generic explorer that works with any schema
+    st.warning(f"Dataset is missing preferred columns: {', '.join(missing)}. Switching to generic explorer mode.")
+    generic_mode = True
 
 # --- Sidebar Filters & Instructions ---
 with st.sidebar:
@@ -91,80 +93,101 @@ with st.sidebar:
             2. Choose filters below; you can select multiple values for each attribute.
             3. Pick a view and explore interactive charts. Hover and click for details.
             4. Beginners: start with the **Overview** tab before diving deeper.
+            5. If your file doesn’t fit the expected schema, the app will switch
+               to a generic explorer mode with basic summaries and histograms.
             """
         )
     st.markdown("---")
 
-    st.markdown("## 🎛️ Filters")
+    if generic_mode:
+        st.markdown("## 🔧 Generic filters")
+        # allow the user to pick a column to filter on and values for that column
+        filter_col = st.selectbox("Pick a column to filter (optional)", options=[""] + df.columns.tolist())
+        selected_values = []
+        if filter_col and filter_col in df.columns:
+            unique = sorted(df[filter_col].dropna().unique().tolist())
+            selected_values = st.multiselect(f"Values for {filter_col}", options=unique)
+        # store generic filter choices for later use
+        generic_filter = (filter_col, selected_values)
 
-    # use multiselect so beginners can select multiple or keep "All" automatically
-    # Some uploaded files might not have these columns; handle missing keys gracefully.
-    if 'Year' in df.columns:
-        years = sorted(df['Year'].dropna().unique().tolist())
+        # still allow choosing a view, though it will be ignored in generic mode
+        view_option = st.radio("📊 Choose a view", options=["Overview"])
     else:
-        years = []
-        st.warning("Dataset does not contain a 'Year' column; year filtering will be skipped.")
-    selected_year = st.multiselect(
-        "📅 Year (pick one or more, blank = all)",
-        options=years,
-        default=years if len(years) <= 3 else []
-    )
+        st.markdown("## 🎛️ Filters")
+        # use multiselect so beginners can select multiple or keep "All" automatically
+        # Some uploaded files might not have these columns; handle missing keys gracefully.
+        if 'Year' in df.columns:
+            years = sorted(df['Year'].dropna().unique().tolist())
+        else:
+            years = []
+            st.warning("Dataset does not contain a 'Year' column; year filtering will be skipped.")
+        selected_year = st.multiselect(
+            "📅 Year (pick one or more, blank = all)",
+            options=years,
+            default=years if len(years) <= 3 else []
+        )
 
-    if 'Region' in df.columns:
-        regions = sorted(df['Region'].dropna().unique().tolist())
-    else:
-        regions = []
-        st.warning("Dataset does not contain a 'Region' column; region filtering will be skipped.")
-    selected_region = st.multiselect(
-        "🌍 Region (pick one or more)",
-        options=regions,
-    )
+        if 'Region' in df.columns:
+            regions = sorted(df['Region'].dropna().unique().tolist())
+        else:
+            regions = []
+            st.warning("Dataset does not contain a 'Region' column; region filtering will be skipped.")
+        selected_region = st.multiselect(
+            "🌍 Region (pick one or more)",
+            options=regions,
+        )
 
-    if 'Category' in df.columns:
-        categories = sorted(df['Category'].dropna().unique().tolist())
-    else:
-        categories = []
-        st.warning("Dataset does not contain a 'Category' column; category filtering will be skipped.")
-    selected_category = st.multiselect(
-        "📦 Category (pick one or more)",
-        options=categories,
-    )
+        if 'Category' in df.columns:
+            categories = sorted(df['Category'].dropna().unique().tolist())
+        else:
+            categories = []
+            st.warning("Dataset does not contain a 'Category' column; category filtering will be skipped.")
+        selected_category = st.multiselect(
+            "📦 Category (pick one or more)",
+            options=categories,
+        )
 
-    if 'Segment' in df.columns:
-        segments = sorted(df['Segment'].dropna().unique().tolist())
-    else:
-        segments = []
-        st.warning("Dataset does not contain a 'Segment' column; segment filtering will be skipped.")
-    selected_segment = st.multiselect(
-        "👥 Segment (pick one or more)",
-        options=segments,
-    )
+        if 'Segment' in df.columns:
+            segments = sorted(df['Segment'].dropna().unique().tolist())
+        else:
+            segments = []
+            st.warning("Dataset does not contain a 'Segment' column; segment filtering will be skipped.")
+        selected_segment = st.multiselect(
+            "👥 Segment (pick one or more)",
+            options=segments,
+        )
 
-    st.markdown("---")
+        st.markdown("---")
 
-    view_option = st.radio(
-        "📊 Choose a view",  # radio makes it easier to see all options
-        options=[
-            "Overview",
-            "Top Products",
-            "Sales Trends",
-            "Profit Analysis",
-            "Regional Breakdown",
-        ],
-    )
+        view_option = st.radio(
+            "📊 Choose a view",  # radio makes it easier to see all options
+            options=[
+                "Overview",
+                "Top Products",
+                "Sales Trends",
+                "Profit Analysis",
+                "Regional Breakdown",
+            ],
+        )
 
 # --- Apply Filters ---
 filtered = df.copy()
-# each selection is a list; if it's non-empty, keep only those values,
-# but only if the underlying column exists in the dataframe.
-if selected_year and 'Year' in filtered.columns:
-    filtered = filtered[filtered['Year'].isin(selected_year)]
-if selected_region and 'Region' in filtered.columns:
-    filtered = filtered[filtered['Region'].isin(selected_region)]
-if selected_category and 'Category' in filtered.columns:
-    filtered = filtered[filtered['Category'].isin(selected_category)]
-if selected_segment and 'Segment' in filtered.columns:
-    filtered = filtered[filtered['Segment'].isin(selected_segment)]
+if generic_mode:
+    # apply simple generic filter if requested
+    col, vals = generic_filter
+    if col and vals:
+        filtered = filtered[filtered[col].isin(vals)]
+else:
+    # each selection is a list; if it's non-empty, keep only those values,
+    # but only if the underlying column exists in the dataframe.
+    if selected_year and 'Year' in filtered.columns:
+        filtered = filtered[filtered['Year'].isin(selected_year)]
+    if selected_region and 'Region' in filtered.columns:
+        filtered = filtered[filtered['Region'].isin(selected_region)]
+    if selected_category and 'Category' in filtered.columns:
+        filtered = filtered[filtered['Category'].isin(selected_category)]
+    if selected_segment and 'Segment' in filtered.columns:
+        filtered = filtered[filtered['Segment'].isin(selected_segment)]
 
 # warn if no rows after filtering
 if filtered.empty:
@@ -173,6 +196,19 @@ if filtered.empty:
 # --- Header ---
 st.markdown('<div class="main-header">Superstore Sales Dashboard</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Interactive analytics for sales, profit & product performance</div>', unsafe_allow_html=True)
+
+# if generic_mode, provide simple summaries and stop
+if generic_mode:
+    st.markdown("## Generic dataset summary")
+    st.write("**Columns:**", df.columns.tolist())
+    st.write(df.describe(include='all'))
+    st.dataframe(filtered)
+    # show histograms for numeric columns
+    num_cols = filtered.select_dtypes(include='number').columns
+    for col in num_cols:
+        fig = px.histogram(filtered, x=col, title=f"Distribution of {col}")
+        st.plotly_chart(fig, use_container_width=True)
+    st.stop()
 
 # allow user to download the current filtered data
 try:
