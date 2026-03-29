@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from io import StringIO
+from pathlib import Path
 
 # --- Page Config ---
 st.set_page_config(
@@ -577,6 +578,20 @@ with st.sidebar:
                     st.success("Thanks for your feedback!")
                 except Exception:
                     st.error("Could not save feedback.")
+
+        feedback_path = Path("feedback.csv")
+        if feedback_path.exists():
+            try:
+                fb_df = pd.read_csv(feedback_path)
+                if "timestamp" in fb_df.columns:
+                    fb_df["timestamp"] = pd.to_datetime(fb_df["timestamp"], errors="coerce")
+                    fb_df = fb_df.sort_values("timestamp", ascending=False)
+                st.markdown("##### Recent Feedback")
+                st.dataframe(fb_df.head(50), use_container_width=True, height=220)
+            except Exception:
+                st.info("Feedback saved. Unable to load the table.")
+        else:
+            st.caption("No feedback yet.")
 
 # --- Apply Filters ---
 filtered = df.copy()
