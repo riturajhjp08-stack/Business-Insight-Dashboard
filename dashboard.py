@@ -579,19 +579,29 @@ with st.sidebar:
                 except Exception:
                     st.error("Could not save feedback.")
 
-        feedback_path = Path("feedback.csv")
-        if feedback_path.exists():
-            try:
-                fb_df = pd.read_csv(feedback_path)
-                if "timestamp" in fb_df.columns:
-                    fb_df["timestamp"] = pd.to_datetime(fb_df["timestamp"], errors="coerce")
-                    fb_df = fb_df.sort_values("timestamp", ascending=False)
-                st.markdown("##### Recent Feedback")
-                st.dataframe(fb_df.head(50), use_container_width=True, height=220)
-            except Exception:
-                st.info("Feedback saved. Unable to load the table.")
+        # Admin-only feedback view (protect with PIN in st.secrets["ADMIN_PIN"])
+        admin_pin = st.secrets.get("ADMIN_PIN", "")
+        if admin_pin:
+            pin_input = st.text_input("Admin PIN (private)", type="password")
+            if pin_input:
+                if pin_input == admin_pin:
+                    feedback_path = Path("feedback.csv")
+                    if feedback_path.exists():
+                        try:
+                            fb_df = pd.read_csv(feedback_path)
+                            if "timestamp" in fb_df.columns:
+                                fb_df["timestamp"] = pd.to_datetime(fb_df["timestamp"], errors="coerce")
+                                fb_df = fb_df.sort_values("timestamp", ascending=False)
+                            st.markdown("##### Recent Feedback")
+                            st.dataframe(fb_df.head(50), use_container_width=True, height=220)
+                        except Exception:
+                            st.info("Feedback saved. Unable to load the table.")
+                    else:
+                        st.caption("No feedback yet.")
+                else:
+                    st.error("Invalid PIN.")
         else:
-            st.caption("No feedback yet.")
+            st.caption("Admin view is disabled.")
 
 # --- Apply Filters ---
 filtered = df.copy()
