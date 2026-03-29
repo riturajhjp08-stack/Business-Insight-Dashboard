@@ -125,6 +125,16 @@ light_theme_css = """
         border-radius: 12px !important;
         background: var(--bg-main) !important;
     }
+    div[data-testid="stSidebar"] .stExpander {
+        background: var(--bg-main) !important;
+    }
+    div[data-testid="stSidebar"] .stExpander summary,
+    div[data-testid="stSidebar"] .stExpander summary * {
+        color: var(--text-primary) !important;
+    }
+    div[data-testid="stSidebar"] .stExpander [data-testid="stMarkdownContainer"] * {
+        color: var(--text-primary) !important;
+    }
     
     .stDataFrame {
         border: 1px solid var(--border) !important;
@@ -241,6 +251,16 @@ dark_theme_css = """
         border: 2px solid var(--border) !important;
         border-radius: 12px !important;
         background: var(--bg-main) !important;
+    }
+    div[data-testid="stSidebar"] .stExpander {
+        background: var(--bg-main) !important;
+    }
+    div[data-testid="stSidebar"] .stExpander summary,
+    div[data-testid="stSidebar"] .stExpander summary * {
+        color: var(--text-primary) !important;
+    }
+    div[data-testid="stSidebar"] .stExpander [data-testid="stMarkdownContainer"] * {
+        color: var(--text-primary) !important;
     }
     
     .stDataFrame {
