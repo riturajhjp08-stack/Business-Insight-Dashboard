@@ -60,7 +60,7 @@ light_theme_css = """
     
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%) !important;
-        padding: 24px 28px !important;
+        padding: 16px 18px !important;
         border-radius: 16px !important;
         color: white !important;
         box-shadow: var(--card-shadow) !important;
@@ -69,14 +69,18 @@ light_theme_css = """
     
     [data-testid="stMetric"] label {
         color: rgba(255,255,255,0.95) !important;
-        font-size: 0.85rem !important;
+        font-size: 0.7rem !important;
         font-weight: 600 !important;
+        line-height: 1.1 !important;
+        white-space: normal !important;
     }
     
     [data-testid="stMetric"] [data-testid="stMetricValue"] {
         color: white !important;
-        font-size: 2.2rem !important;
+        font-size: 1.4rem !important;
         font-weight: 800 !important;
+        line-height: 1.15 !important;
+        white-space: normal !important;
     }
     
     div[data-testid="stSidebar"] {
@@ -168,7 +172,7 @@ dark_theme_css = """
     
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%) !important;
-        padding: 24px 28px !important;
+        padding: 16px 18px !important;
         border-radius: 16px !important;
         color: white !important;
         box-shadow: var(--card-shadow) !important;
@@ -177,14 +181,18 @@ dark_theme_css = """
     
     [data-testid="stMetric"] label {
         color: rgba(255,255,255,0.95) !important;
-        font-size: 0.85rem !important;
+        font-size: 0.7rem !important;
         font-weight: 600 !important;
+        line-height: 1.1 !important;
+        white-space: normal !important;
     }
     
     [data-testid="stMetric"] [data-testid="stMetricValue"] {
         color: white !important;
-        font-size: 2.2rem !important;
+        font-size: 1.4rem !important;
         font-weight: 800 !important;
+        line-height: 1.15 !important;
+        white-space: normal !important;
     }
     
     div[data-testid="stSidebar"] {
