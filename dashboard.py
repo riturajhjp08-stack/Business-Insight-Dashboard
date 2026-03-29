@@ -609,36 +609,65 @@ if generic_mode:
     num_cols = filtered.select_dtypes(include=['number']).columns.tolist()
     cat_cols = filtered.select_dtypes(exclude=['number']).columns.tolist()
 
-    def _format_total(col_name, total_val):
-        if pd.isna(total_val):
+    def _first_col(columns, keywords):
+        for col in columns:
+            col_lower = col.lower()
+            if any(k in col_lower for k in keywords):
+                return col
+        return None
+
+    def _format_number(val):
+        if pd.isna(val):
             return "—"
-        col_lower = col_name.lower()
-        use_currency = any(k in col_lower for k in ["sales", "profit", "revenue", "amount", "price"])
-        if use_currency:
-            return f"${total_val:,.0f}"
-        if abs(total_val) >= 1000:
-            return f"{total_val:,.0f}"
-        return f"{total_val:,.2f}"
+        if abs(val) >= 1000:
+            return f"{val:,.0f}"
+        return f"{val:,.2f}"
 
-    # Build simple KPIs: prefer Sales/Profit totals when present
+    # Choose a brand-like categorical column
+    brand_col = _first_col(cat_cols, ["brand", "company", "manufacturer", "make"])
+    if not brand_col and cat_cols:
+        limited = [c for c in cat_cols if filtered[c].nunique() <= 20]
+        brand_col = limited[0] if limited else cat_cols[0]
+
+    top_brand = "—"
+    if brand_col:
+        try:
+            top_brand = filtered[brand_col].mode(dropna=True)[0]
+        except Exception:
+            top_brand = "—"
+
+    # Choose a RAM-like numeric column
+    ram_col = _first_col(num_cols, ["ram", "memory"])
+    best_ram = "—"
+    if ram_col:
+        max_ram = filtered[ram_col].max(skipna=True)
+        if not pd.isna(max_ram):
+            col_lower = ram_col.lower()
+            if "gb" in col_lower:
+                best_ram = f"{_format_number(max_ram)} GB"
+            elif "mb" in col_lower:
+                best_ram = f"{_format_number(max_ram)} MB"
+            elif max_ram <= 256:
+                best_ram = f"{_format_number(max_ram)} GB"
+            else:
+                best_ram = _format_number(max_ram)
+
+    # Choose an easy, meaningful third metric
+    price_col = _first_col(num_cols, ["price", "cost", "amount", "revenue", "sales"])
+    avg_price = "—"
+    if price_col:
+        avg_val = filtered[price_col].mean(skipna=True)
+        if not pd.isna(avg_val):
+            avg_price = f"${avg_val:,.0f}" if "price" in price_col.lower() or "cost" in price_col.lower() else _format_number(avg_val)
+
     metric_items = []
-    used = set()
-    for key in ["Sales", "Profit"]:
-        if key in filtered.columns:
-            total_val = filtered[key].sum()
-            metric_items.append((f"Total {key}", _format_total(key, total_val)))
-            used.add(key)
+    if top_brand not in ["", "—", None]:
+        metric_items.append(("Most Selling Brand", top_brand))
+    if best_ram not in ["", "—", None]:
+        metric_items.append(("Best RAM", best_ram))
+    if avg_price not in ["", "—", None]:
+        metric_items.append(("Average Price", avg_price))
 
-    # Fill remaining KPI slots with top numeric totals
-    remaining_numeric = [c for c in num_cols if c not in used]
-    if remaining_numeric:
-        totals = sorted(remaining_numeric, key=lambda c: abs(filtered[c].sum(skipna=True)), reverse=True)
-        for col in totals:
-            metric_items.append((f"Total {col}", _format_total(col, filtered[col].sum(skipna=True))))
-            if len(metric_items) >= 2:
-                break
-
-    # Always include rows/columns for clarity
     metric_items.append(("Rows", f"{n_rows:,}"))
     metric_items.append(("Columns", f"{n_cols}"))
 
