@@ -603,58 +603,71 @@ if filtered.empty:
 
 # if generic_mode, provide a friendly, visual explorer and stop
 if generic_mode:
-    st.markdown("### Dataset Explorer")
+    st.markdown("### Simple Dataset Summary")
 
-    # Basic KPIs (show product-focused metrics if a product-like column exists)
     n_rows, n_cols = filtered.shape
     num_cols = filtered.select_dtypes(include=['number']).columns.tolist()
     cat_cols = filtered.select_dtypes(exclude=['number']).columns.tolist()
 
-    # detect a product-like column
-    prod_col = None
-    for c in filtered.columns:
-        cl = c.lower()
-        if any(k in cl for k in ['product', 'item', 'sku']):
-            prod_col = c
-            break
+    def _format_total(col_name, total_val):
+        if pd.isna(total_val):
+            return "—"
+        col_lower = col_name.lower()
+        use_currency = any(k in col_lower for k in ["sales", "profit", "revenue", "amount", "price"])
+        if use_currency:
+            return f"${total_val:,.0f}"
+        if abs(total_val) >= 1000:
+            return f"{total_val:,.0f}"
+        return f"{total_val:,.2f}"
 
+    # Build simple KPIs: prefer Sales/Profit totals when present
+    metric_items = []
+    used = set()
+    for key in ["Sales", "Profit"]:
+        if key in filtered.columns:
+            total_val = filtered[key].sum()
+            metric_items.append((f"Total {key}", _format_total(key, total_val)))
+            used.add(key)
+
+    # Fill remaining KPI slots with top numeric totals
+    remaining_numeric = [c for c in num_cols if c not in used]
+    if remaining_numeric:
+        totals = sorted(remaining_numeric, key=lambda c: abs(filtered[c].sum(skipna=True)), reverse=True)
+        for col in totals:
+            metric_items.append((f"Total {col}", _format_total(col, filtered[col].sum(skipna=True))))
+            if len(metric_items) >= 2:
+                break
+
+    # Always include rows/columns for clarity
+    metric_items.append(("Rows", f"{n_rows:,}"))
+    metric_items.append(("Columns", f"{n_cols}"))
+
+    # Render first 4 metrics
     k1, k2, k3, k4 = st.columns(4)
-    if prod_col:
-        # product-focused KPIs
-        prod_count = int(filtered[prod_col].nunique())
-        try:
-            top_prod = filtered[prod_col].mode(dropna=True)[0]
-        except Exception:
-            top_prod = "-"
-        k1.metric("Unique products", f"{prod_count}")
-        k2.metric("Top product", f"{top_prod}")
-        k3.metric("Rows", f"{n_rows:,}")
-        k4.metric("Columns", f"{n_cols}")
-    else:
-        # generic KPIs
-        k1.metric("Rows", f"{n_rows:,}")
-        k2.metric("Columns", f"{n_cols}")
-        k3.metric("Numeric fields", f"{len(num_cols)}")
-        k4.metric("Categorical fields", f"{len(cat_cols)}")
+    cols = [k1, k2, k3, k4]
+    for idx, (label, value) in enumerate(metric_items[:4]):
+        cols[idx].metric(label, value)
 
     st.markdown("---")
 
-    # Show a small sample for quick inspection
-    st.subheader("Sample rows")
-    st.dataframe(filtered.head(8))
+    with st.expander("View sample rows", expanded=False):
+        st.dataframe(filtered.head(8), use_container_width=True)
 
     st.markdown("---")
 
-    # Color palette for charts
-    palette = ['#667eea', '#764ba2', '#f093fb', '#a8edea', '#ffb86b']
+    # Brighter palette for charts
+    palette = ['#FF6B6B', '#4D96FF', '#6BCB77', '#FFD93D', '#9D4EDD', '#FF8FAB', '#06D6A0', '#F72585']
 
-    # Show histograms for up to 3 numeric columns (most informative)
+    # Show histograms for up to 3 numeric columns
     if num_cols:
         st.subheader("Numeric distributions")
-        # pick up to 3 numeric cols with most non-null values
         sorted_num = sorted(num_cols, key=lambda c: filtered[c].count(), reverse=True)[:3]
-        for col in sorted_num:
-            fig = px.histogram(filtered, x=col, nbins=30, title=f"Distribution of {col}", color_discrete_sequence=[palette[0]])
+        for i, col in enumerate(sorted_num):
+            fig = px.histogram(
+                filtered, x=col, nbins=30,
+                title=f"Distribution of {col}",
+                color_discrete_sequence=[palette[i % len(palette)]],
+            )
             fig.update_layout(template='plotly_white')
             st.plotly_chart(fig, use_container_width=True)
     else:
@@ -663,25 +676,25 @@ if generic_mode:
     # Show bar/pie charts for up to 3 categorical columns
     if cat_cols:
         st.subheader("Top categories (by frequency)")
-        # choose categorical columns that have reasonable cardinality (not too many distinct)
-        cand = [c for c in cat_cols if filtered[c].nunique() <= 20]
-        cand = cand[:3]
+        cand = [c for c in cat_cols if filtered[c].nunique() <= 20][:3]
         for col in cand:
             df_top = filtered[col].fillna("(missing)").value_counts().reset_index()
             df_top.columns = [col, 'count']
-            # bar chart
-            fig_bar = px.bar(df_top.head(10), x='count', y=col, orientation='h', title=f'Top values in {col}', color_discrete_sequence=palette)
+            fig_bar = px.bar(
+                df_top.head(10), x='count', y=col, orientation='h',
+                title=f'Top values in {col}', color_discrete_sequence=palette,
+            )
             fig_bar.update_layout(template='plotly_white', yaxis={'autorange': 'reversed'})
             st.plotly_chart(fig_bar, use_container_width=True)
-            # pie chart of top 6
-            fig_pie = px.pie(df_top.head(6), values='count', names=col, title=f'{col} composition (top 6)', color_discrete_sequence=palette)
+            fig_pie = px.pie(
+                df_top.head(6), values='count', names=col,
+                title=f'{col} composition (top 6)', color_discrete_sequence=palette,
+            )
             fig_pie.update_layout(template='plotly_white')
             st.plotly_chart(fig_pie, use_container_width=True)
     else:
         st.info("No categorical columns found to show category breakdowns.")
 
-    st.markdown('---')
-    st.caption('Tip: Upload a dataset with numeric columns for histograms and categorical columns with limited unique values for bars and pies.')
     st.stop()
 
 # ======================= OVERVIEW =======================
