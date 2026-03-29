@@ -126,6 +126,15 @@ light_theme_css = """
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
     }
+    .stDataFrame [role="gridcell"],
+    .stDataFrame [role="columnheader"] {
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+    }
+    .stDataFrame [role="gridcell"] {
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
 </style>
 """
 
@@ -230,6 +239,15 @@ dark_theme_css = """
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
         background: var(--bg-main) !important;
+    }
+    .stDataFrame [role="gridcell"],
+    .stDataFrame [role="columnheader"] {
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+    }
+    .stDataFrame [role="gridcell"] {
+        white-space: normal !important;
+        word-break: break-word !important;
     }
 </style>
 """
