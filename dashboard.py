@@ -103,12 +103,20 @@ light_theme_css = """
         margin-top: 1.5rem !important;
     }
     
+    div[data-testid="stMarkdownContainer"] {
+        color: var(--text-primary) !important;
+        opacity: 1 !important;
+    }
     div[data-testid="stMarkdownContainer"] h1,
     div[data-testid="stMarkdownContainer"] h2,
     div[data-testid="stMarkdownContainer"] h3,
     div[data-testid="stMarkdownContainer"] h4,
     div[data-testid="stMarkdownContainer"] h5,
-    div[data-testid="stMarkdownContainer"] h6 {
+    div[data-testid="stMarkdownContainer"] h6,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] li,
+    div[data-testid="stMarkdownContainer"] span {
+        color: var(--text-primary) !important;
         opacity: 1 !important;
     }
     
@@ -133,18 +141,20 @@ light_theme_css = """
     .stExpander {
         border: 2px solid var(--border) !important;
         border-radius: 12px !important;
-        background: #eef2ff !important;
+        background: #f8fafc !important;
     }
     div[data-testid="stSidebar"] .stExpander {
-        background: #eef2ff !important;
+        background: #f8fafc !important;
     }
     div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
         color: var(--text-primary) !important;
         opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander summary,
-    div[data-testid="stSidebar"] .stExpander summary * {
+    div[data-testid="stSidebar"] .stExpander summary *,
+    div[data-testid="stSidebar"] .stExpander svg {
         color: var(--text-primary) !important;
+        opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander [data-testid="stMarkdownContainer"] * {
         color: var(--text-primary) !important;
@@ -243,12 +253,20 @@ dark_theme_css = """
         margin-top: 1.5rem !important;
     }
     
+    div[data-testid="stMarkdownContainer"] {
+        color: var(--text-primary) !important;
+        opacity: 1 !important;
+    }
     div[data-testid="stMarkdownContainer"] h1,
     div[data-testid="stMarkdownContainer"] h2,
     div[data-testid="stMarkdownContainer"] h3,
     div[data-testid="stMarkdownContainer"] h4,
     div[data-testid="stMarkdownContainer"] h5,
-    div[data-testid="stMarkdownContainer"] h6 {
+    div[data-testid="stMarkdownContainer"] h6,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] li,
+    div[data-testid="stMarkdownContainer"] span {
+        color: var(--text-primary) !important;
         opacity: 1 !important;
     }
     
@@ -274,18 +292,20 @@ dark_theme_css = """
     .stExpander {
         border: 2px solid var(--border) !important;
         border-radius: 12px !important;
-        background: #0f172a !important;
+        background: #111827 !important;
     }
     div[data-testid="stSidebar"] .stExpander {
-        background: #0f172a !important;
+        background: #111827 !important;
     }
     div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
         color: var(--text-primary) !important;
         opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander summary,
-    div[data-testid="stSidebar"] .stExpander summary * {
+    div[data-testid="stSidebar"] .stExpander summary *,
+    div[data-testid="stSidebar"] .stExpander svg {
         color: var(--text-primary) !important;
+        opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander [data-testid="stMarkdownContainer"] * {
         color: var(--text-primary) !important;
