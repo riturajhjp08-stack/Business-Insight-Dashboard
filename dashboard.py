@@ -92,14 +92,24 @@ light_theme_css = """
         color: var(--text-primary) !important;
     }
     
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5, h6 {
         color: var(--text-primary) !important;
         font-weight: 700 !important;
+        opacity: 1 !important;
     }
     
     h3 {
         font-size: 1.3rem !important;
         margin-top: 1.5rem !important;
+    }
+    
+    div[data-testid="stMarkdownContainer"] h1,
+    div[data-testid="stMarkdownContainer"] h2,
+    div[data-testid="stMarkdownContainer"] h3,
+    div[data-testid="stMarkdownContainer"] h4,
+    div[data-testid="stMarkdownContainer"] h5,
+    div[data-testid="stMarkdownContainer"] h6 {
+        opacity: 1 !important;
     }
     
     [data-testid="stSelectbox"], [data-testid="stMultiSelect"], [data-testid="stRadio"],
@@ -123,10 +133,14 @@ light_theme_css = """
     .stExpander {
         border: 2px solid var(--border) !important;
         border-radius: 12px !important;
-        background: var(--bg-main) !important;
+        background: #eef2ff !important;
     }
     div[data-testid="stSidebar"] .stExpander {
-        background: var(--bg-main) !important;
+        background: #eef2ff !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
+        color: var(--text-primary) !important;
+        opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander summary,
     div[data-testid="stSidebar"] .stExpander summary * {
@@ -218,14 +232,24 @@ dark_theme_css = """
         background: var(--bg-secondary) !important;
     }
     
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5, h6 {
         color: var(--text-primary) !important;
         font-weight: 700 !important;
+        opacity: 1 !important;
     }
     
     h3 {
         font-size: 1.3rem !important;
         margin-top: 1.5rem !important;
+    }
+    
+    div[data-testid="stMarkdownContainer"] h1,
+    div[data-testid="stMarkdownContainer"] h2,
+    div[data-testid="stMarkdownContainer"] h3,
+    div[data-testid="stMarkdownContainer"] h4,
+    div[data-testid="stMarkdownContainer"] h5,
+    div[data-testid="stMarkdownContainer"] h6 {
+        opacity: 1 !important;
     }
     
     [data-testid="stSelectbox"], [data-testid="stMultiSelect"], [data-testid="stRadio"],
@@ -250,10 +274,14 @@ dark_theme_css = """
     .stExpander {
         border: 2px solid var(--border) !important;
         border-radius: 12px !important;
-        background: var(--bg-main) !important;
+        background: #0f172a !important;
     }
     div[data-testid="stSidebar"] .stExpander {
-        background: var(--bg-main) !important;
+        background: #0f172a !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
+        color: var(--text-primary) !important;
+        opacity: 1 !important;
     }
     div[data-testid="stSidebar"] .stExpander summary,
     div[data-testid="stSidebar"] .stExpander summary * {
