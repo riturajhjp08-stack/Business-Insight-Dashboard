@@ -629,12 +629,13 @@ if generic_mode:
         limited = [c for c in cat_cols if filtered[c].nunique() <= 20]
         brand_col = limited[0] if limited else cat_cols[0]
 
-    top_brand = "—"
+    top_brands = []
     if brand_col:
         try:
-            top_brand = filtered[brand_col].mode(dropna=True)[0]
+            vc = filtered[brand_col].dropna().astype(str).value_counts()
+            top_brands = vc.index.tolist()[:3]
         except Exception:
-            top_brand = "—"
+            top_brands = []
 
     # Choose a RAM-like numeric column
     ram_col = _first_col(num_cols, ["ram", "memory"])
@@ -661,15 +662,16 @@ if generic_mode:
             avg_price = f"${avg_val:,.0f}" if "price" in price_col.lower() or "cost" in price_col.lower() else _format_number(avg_val)
 
     metric_items = []
-    if top_brand not in ["", "—", None]:
-        metric_items.append(("Most Selling Brand", top_brand))
+    if len(top_brands) >= 1:
+        metric_items.append(("Most Selling Brand", top_brands[0]))
+    if len(top_brands) >= 2:
+        metric_items.append(("2nd Most Selling", top_brands[1]))
+    if len(top_brands) >= 3:
+        metric_items.append(("3rd Most Selling", top_brands[2]))
     if best_ram not in ["", "—", None]:
         metric_items.append(("Best RAM", best_ram))
     if avg_price not in ["", "—", None]:
         metric_items.append(("Average Price", avg_price))
-
-    metric_items.append(("Rows", f"{n_rows:,}"))
-    metric_items.append(("Columns", f"{n_cols}"))
 
     # Render first 4 metrics
     k1, k2, k3, k4 = st.columns(4)
